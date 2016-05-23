@@ -22,13 +22,20 @@ package sensupluginsprocess
 
 import (
 	"fmt"
+	"log/syslog"
 	"os"
 
+	"github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus/hooks/syslog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
+
+// Create a new instance of the logger. You can have any number of instances.
+var stderrLog = logrus.New()
+var syslogLog = logrus.New()
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -56,6 +63,14 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+
+	stderrLog.Out = os.Stderr
+	hook, err := logrus_syslog.NewSyslogHook("", "", syslog.LOG_INFO, "")
+	if err == nil {
+		fmt.Printf("test")
+		syslogLog.Hooks.Add(hook)
+		// syslogLog.Hooks.Fire(level, entry)
+	}
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports Persistent Flags, which, if defined here,

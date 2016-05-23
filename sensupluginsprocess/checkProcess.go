@@ -23,7 +23,7 @@ package sensupluginsprocess
 import (
 	"os"
 
-	"github.com/op/go-logging"
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -36,9 +36,6 @@ var JavaApp = sensupluginsfile.JavaApp
 
 var app string
 
-var syslogLog = logging.MustGetLogger("sensu-process-check")
-var stderrLog = logging.MustGetLogger("sensu-process-check")
-
 // checkProcessCmd represents the checkProcess command
 var checkProcessCmd = &cobra.Command{
 	Use:   "checkProcess",
@@ -48,12 +45,15 @@ var checkProcessCmd = &cobra.Command{
   used in this case due to redirects using runnit.`,
 	Run: func(sensupluginsprocess *cobra.Command, args []string) {
 
-		syslogBackend, _ := logging.NewSyslogBackend("checkProcess")
-		stderrBackend := logging.NewLogBackend(os.Stderr, "checkProcess", 0)
-		syslogBackendFormatter := logging.NewBackendFormatter(syslogBackend, sensuutil.SyslogFormat)
-		stderrBackendFormatter := logging.NewBackendFormatter(stderrBackend, sensuutil.StderrFormat)
-		logging.SetBackend(syslogBackendFormatter)
-		logging.SetBackend(stderrBackendFormatter)
+		stderrLog.WithFields(logrus.Fields{
+			"check":  "walrus",
+			"client": 10,
+		}).Info("A group of walrus emerges from the ocean")
+
+		syslogLog.WithFields(logrus.Fields{
+			"check":  "cow",
+			"client": 20,
+		}).Error("A group of cows emerges from the fields")
 
 		var appPid string
 
@@ -63,8 +63,9 @@ var checkProcessCmd = &cobra.Command{
 				app = viper.GetString("sensupluginsprocess.checkProcess.app")
 				appPid = sensupluginsfile.GetPid(app)
 			} else {
-				syslogLog.Error(`You are missing a required configuration parameter\n
-          If unsure consult the documentation for examples and requirements\n`)
+				// syslogLog.Error(`You are missing a required configuration parameter
+				//                  If unsure consult the documentation for examples and
+				//                  requirements`)
 				os.Exit(sensuutil.MonitoringErrorCodes["CONFIG_ERROR"])
 			}
 		default:
@@ -81,5 +82,5 @@ var checkProcessCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(checkProcessCmd)
-	checkProcessCmd.Flags().StringVarP(&app, "app", "", "sbin/init", "the process name")
+	checkProcessCmd.Flags().StringVarP(&app, "app", "", "", "the process name")
 }
