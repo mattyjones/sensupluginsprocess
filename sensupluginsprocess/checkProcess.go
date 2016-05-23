@@ -21,31 +21,53 @@
 package sensupluginsprocess
 
 import (
+	"os"
+
+	"github.com/op/go-logging"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/yieldbot/sensuplugin/sensuutil"
 	"github.com/yieldbot/sensupluginsfile/sensupluginsfile"
 )
 
-// JavaApp  This is used to let the process -> pid function know how it will match the process name
+// JavaApp is used to let the process -> pid function know how it will match the process name
 var JavaApp = sensupluginsfile.JavaApp
 
 var app string
 
+var syslogLog = logging.MustGetLogger("sensu-process-check")
+var stderrLog = logging.MustGetLogger("sensu-process-check")
+
 // checkProcessCmd represents the checkProcess command
 var checkProcessCmd = &cobra.Command{
 	Use:   "checkProcess",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Check to see if a process is running",
+	Long: ` Check to see if a process is running by using ps to determine if the
+  process has a pid and is in fact running. The usual service foo status is not
+  used in this case due to redirects using runnit.`,
 	Run: func(sensupluginsprocess *cobra.Command, args []string) {
+
+		syslogBackend, _ := logging.NewSyslogBackend("checkProcess")
+		stderrBackend := logging.NewLogBackend(os.Stderr, "checkProcess", 0)
+		syslogBackendFormatter := logging.NewBackendFormatter(syslogBackend, sensuutil.SyslogFormat)
+		stderrBackendFormatter := logging.NewBackendFormatter(stderrBackend, sensuutil.StderrFormat)
+		logging.SetBackend(syslogBackendFormatter)
+		logging.SetBackend(stderrBackendFormatter)
 
 		var appPid string
 
-		if app != "" {
+		switch app {
+		case "":
+			if viper.GetString("sensupluginsprocess.checkProcess.app") != "" {
+				app = viper.GetString("sensupluginsprocess.checkProcess.app")
+				appPid = sensupluginsfile.GetPid(app)
+			} else {
+				syslogLog.Error(`You are missing a required configuration parameter\n
+          If unsure consult the documentation for examples and requirements\n`)
+				os.Exit(sensuutil.MonitoringErrorCodes["CONFIG_ERROR"])
+			}
+		default:
 			appPid = sensupluginsfile.GetPid(app)
 		}
 
@@ -54,23 +76,10 @@ to quickly create a Cobra application.`,
 		} else {
 			sensuutil.Exit("ok")
 		}
-
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(checkProcessCmd)
-
 	checkProcessCmd.Flags().StringVarP(&app, "app", "", "sbin/init", "the process name")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// checkProcessCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// checkProcessCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }
