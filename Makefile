@@ -226,7 +226,7 @@ pre-build:
 	fi;
 
 pre-dist:
-	@if [ -e ./cmd/ ]; then \
+	@if [ -e ./$(pkg)/ ]; then \
 		echo "Ensuring output tarball directory exists"; \
 		echo "Creating ./$(targetdir)"; \
 		mkdir -p ./$(targetdir); \
@@ -252,9 +252,9 @@ vendor:
 # print out the current version of the project
 version:
 	@if [ -e $(version_file) ]; then \
-		sed -i .bak 's/package version/package main/' $(version_file); \
+		sed -i.bak 's/package version/package main/' $(version_file); \
 		ver=`go run $(version_file)`; \
-		sed -i .bak 's/package main/package version/' $(version_file); \
+		sed -i.bak 's/package main/package version/' $(version_file); \
 		rm "$(version_file).bak"; \
 		echo "{\"version\":\"$$ver\"}"; \
 	else \
