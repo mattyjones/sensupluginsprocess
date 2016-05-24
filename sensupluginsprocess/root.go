@@ -29,6 +29,8 @@ import (
 	"github.com/Sirupsen/logrus/hooks/syslog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/yieldbot/sensuplugin/sensuutil"
+	"github.com/yieldbot/sensupluginsprocess/version"
 )
 
 var cfgFile string // used for configuration via Viper
@@ -51,8 +53,8 @@ var syslogLog = logrus.New()
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use: "sensupluginsprocess",
-	// Short: fmt.Sprintf("A set of process checks for Sensu - (%s)", version.AppVersion()),
+	Use:   "sensupluginsprocess",
+	Short: fmt.Sprintf("A set of process checks for Sensu - (%s)", version.AppVersion()),
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -88,6 +90,7 @@ func init() {
 			"version": "foo",
 			"error":   err,
 		}).Error(`Could not determine the hostname of this machine as reported by the kernel.`)
+		sensuutil.Exit("GENERALGOLANGERROR")
 	}
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sensuplugins/conf.d/.sensupluginsprocess.yaml)")

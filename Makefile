@@ -2,7 +2,7 @@ SHELL = /bin/sh
 
 # This is a general purpose Makefile for building golang projects
 #
-# version 0.0.15
+# version 0.0.17
 # Copyright (c) 2015 Yieldbot
 
 .PHONY: all build bump_version clean coverage dist format info install lint maintainer-clean test test_all updatedeps version vet
@@ -220,6 +220,7 @@ pre-build:
 	else \
 		echo "Creating proper build environment and dependency directory structure"; \
 		echo "Creating $$GOPATH/src/github.com/yieldbot/$(pkg)"; \
+		rm -rf $$GOPATH/src/github.com/yieldbot/$(pkg); \
 		mkdir -p $$GOPATH/src/github.com/yieldbot/$(pkg); \
 		echo "Copying dependencies from $$(pwd) -> $$GOPATH/src/github.com/yieldbot/$(pkg)"; \
 		cp -R ./* $$GOPATH/src/github.com/yieldbot/$(pkg); \
@@ -242,9 +243,11 @@ test:
 test_all: vet lint format test
 
 tools:
-	go get -v github.com/spf13/cobra/cobra
+	go get -u github.com/spf13/cobra/cobra
+	go get -u github.com/yieldbot/sensuplugin/sensuutil
 	go get -u github.com/golang/lint/golint
 	go get -u github.com/kardianos/govendor
+	go get -u github.com/Sirupsen/logrus
 
 vendor:
 	@govendor sync
