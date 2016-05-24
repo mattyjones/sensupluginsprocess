@@ -26,7 +26,7 @@ import (
 
 const AppVersionMajor = "0"
 const AppVersionMinor = "0"
-const AppVersionPatch = "1"
+const AppVersionPatch = "2"
 const AppVersionPre = ""
 
 // Set this to an empty string when releasing
