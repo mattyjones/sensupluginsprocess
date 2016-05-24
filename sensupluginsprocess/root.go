@@ -29,7 +29,6 @@ import (
 	"github.com/Sirupsen/logrus/hooks/syslog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/yieldbot/sensupluginsconsul/version"
 )
 
 var cfgFile string // used for configuration via Viper
@@ -41,22 +40,19 @@ var host string // get the hostname for logging
 // as that is more human readable but the syslog logger should be in json format
 // to make it more easily consumable via automated processes or third-party
 // tools.
-var stderrLog = logrus.Logger{
-	Out: os.Stderr,
-}
-var stdoutLog = logrus.Logger{
-	Out:   os.Stdout,
-	Level: logrus.DebugLevel,
-}
-var syslogLog = logrus.Logger{
-	Formatter: new(logrus.JSONFormatter),
-	Hooks:     make(logrus.LevelHooks),
-}
+// var stderrLog = logrus.Logger{
+// 	Out: os.Stderr,
+// }
+// var stdoutLog = logrus.Logger{
+// 	Out:   os.Stdout,
+// 	Level: logrus.DebugLevel,
+// }
+var syslogLog = logrus.New()
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "sensupluginsprocess",
-	Short: fmt.Sprintf("A set of process checks for Sensu - (%s)", version.AppVersion()),
+	Use: "sensupluginsprocess",
+	// Short: fmt.Sprintf("A set of process checks for Sensu - (%s)", version.AppVersion()),
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -79,6 +75,7 @@ func init() {
 		panic(err)
 	}
 	syslogLog.Hooks.Add(hook)
+	// syslogLog.Formatter = new(logrus.JSONFormatter)
 
 	// Set the hostname for use in logging within the package. Doing it here is
 	// cleaner than in each binary but if you want to use some other method just
@@ -90,8 +87,7 @@ func init() {
 			"client":  "unknown",
 			"version": "foo",
 			"error":   err,
-		}).Error(`Could not determine the hostname of this machine as reported
-	             by the kernel.`)
+		}).Error(`Could not determine the hostname of this machine as reported by the kernel.`)
 	}
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sensuplugins/conf.d/.sensupluginsprocess.yaml)")
@@ -101,19 +97,22 @@ func init() {
 func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
+	} else {
+		viper.SetConfigName("sensupluginsprocess")
+		viper.AddConfigPath("/etc/sensuplugins/conf.d")
 	}
 
-	viper.SetConfigName("sensupluginsprocess")
-	viper.AddConfigPath("/etc/sensuplugins/conf.d")
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-	} else {
-		syslogLog.WithFields(logrus.Fields{
-			"check":   "sensupluginsprocess",
-			"client":  host,
-			"version": "foo",
-			"error":   err,
-		}).Error(`Could not read in the configuration specified in the file.`)
+	if app == "" {
+		viper.AutomaticEnv()
+		if err := viper.ReadInConfig(); err == nil {
+		} else {
+			syslogLog.WithFields(logrus.Fields{
+				"check":   "sensupluginsprocess",
+				"client":  host,
+				"version": "foo",
+				"error":   err,
+				"cfgFile": cfgFile,
+			}).Error(`Could not read in the configuration file.`)
+		}
 	}
 }
