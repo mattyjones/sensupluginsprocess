@@ -21,7 +21,7 @@
 package sensupluginsprocess
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -34,7 +34,11 @@ import (
 // JavaApp is used to let the process -> pid function know how it will match the process name
 var JavaApp = sensupluginsfile.JavaApp
 
+// app represents the app to check
 var app string
+
+// appPid represents the pid of the app if found to be running
+var appPid string
 
 // checkProcessCmd represents the checkProcess command
 var checkProcessCmd = &cobra.Command{
@@ -45,30 +49,26 @@ var checkProcessCmd = &cobra.Command{
   used in this case due to redirects using runnit.`,
 	Run: func(sensupluginsprocess *cobra.Command, args []string) {
 
-		stderrLog.WithFields(logrus.Fields{
-			"check":  "walrus",
-			"client": 10,
-		}).Info("A group of walrus emerges from the ocean")
-
-		syslogLog.WithFields(logrus.Fields{
-			"check":  "cow",
-			"client": 20,
-		}).Error("A group of cows emerges from the fields")
-
-		var appPid string
+		fmt.Println("test" + app + "test")
 
 		switch app {
 		case "":
 			if viper.GetString("sensupluginsprocess.checkProcess.app") != "" {
+				fmt.Println("test2" + app + "test2")
 				app = viper.GetString("sensupluginsprocess.checkProcess.app")
 				appPid = sensupluginsfile.GetPid(app)
 			} else {
-				// syslogLog.Error(`You are missing a required configuration parameter
-				//                  If unsure consult the documentation for examples and
-				//                  requirements`)
-				os.Exit(sensuutil.MonitoringErrorCodes["CONFIG_ERROR"])
+				fmt.Println("test3" + app + "test3")
+				syslogLog.WithFields(logrus.Fields{
+					"check":   "checkProcess",
+					"client":  host,
+					"version": "foo",
+				}).Error(`You are missing a required configuration parameter
+				            If unsure consult the documentation for examples and
+				            requirements`)
 			}
 		default:
+			fmt.Println("test4" + app + "test4")
 			appPid = sensupluginsfile.GetPid(app)
 		}
 

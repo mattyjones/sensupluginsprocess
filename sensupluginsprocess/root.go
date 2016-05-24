@@ -29,27 +29,34 @@ import (
 	"github.com/Sirupsen/logrus/hooks/syslog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/yieldbot/sensupluginsconsul/version"
 )
 
-var cfgFile string
+var cfgFile string // used for configuration via Viper
 
-// Create a new instance of the logger. You can have any number of instances.
-var stderrLog = logrus.New()
-var syslogLog = logrus.New()
+var host string // get the hostname for logging
+
+// Create a set of logging instances. I have two because they are configured
+// differently via levels and format. Stderr should be configured for ascii
+// as that is more human readable but the syslog logger should be in json format
+// to make it more easily consumable via automated processes or third-party
+// tools.
+var stderrLog = logrus.Logger{
+	Out: os.Stderr,
+}
+var stdoutLog = logrus.Logger{
+	Out:   os.Stdout,
+	Level: logrus.DebugLevel,
+}
+var syslogLog = logrus.Logger{
+	Formatter: new(logrus.JSONFormatter),
+	Hooks:     make(logrus.LevelHooks),
+}
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "sensupluginsprocess",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Short: fmt.Sprintf("A set of process checks for Sensu - (%s)", version.AppVersion()),
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -64,36 +71,49 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	stderrLog.Out = os.Stderr
+	// Setup logging for the package. Doing it here is much eaiser than in each
+	// binary. If you want to overwrite it in a specific binary then feel free.
+	// stderrLog.Out = os.Stderr
 	hook, err := logrus_syslog.NewSyslogHook("", "", syslog.LOG_INFO, "")
-	if err == nil {
-		fmt.Printf("test")
-		syslogLog.Hooks.Add(hook)
-		// syslogLog.Hooks.Fire(level, entry)
+	if err != nil {
+		panic(err)
+	}
+	syslogLog.Hooks.Add(hook)
+
+	// Set the hostname for use in logging within the package. Doing it here is
+	// cleaner than in each binary but if you want to use some other method just
+	// override the variable in the specific binary.
+	host, err = os.Hostname()
+	if err != nil {
+		syslogLog.WithFields(logrus.Fields{
+			"check":   "sensupluginsprocess",
+			"client":  "unknown",
+			"version": "foo",
+			"error":   err,
+		}).Error(`Could not determine the hostname of this machine as reported
+	             by the kernel.`)
 	}
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports Persistent Flags, which, if defined here,
-	// will be global for your application.
-
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.sensupluginsprocess.yaml)")
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/sensuplugins/conf.d/.sensupluginsprocess.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" { // enable ability to specify config file via flag
+	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	}
 
-	viper.SetConfigName(".sensupluginsprocess") // name of config file (without extension)
-	viper.AddConfigPath("$HOME")                // adding home directory as first search path
-	viper.AutomaticEnv()                        // read in environment variables that match
+	viper.SetConfigName("sensupluginsprocess")
+	viper.AddConfigPath("/etc/sensuplugins/conf.d")
+	viper.AutomaticEnv()
 
-	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	} else {
+		syslogLog.WithFields(logrus.Fields{
+			"check":   "sensupluginsprocess",
+			"client":  host,
+			"version": "foo",
+			"error":   err,
+		}).Error(`Could not read in the configuration specified in the file.`)
 	}
 }
