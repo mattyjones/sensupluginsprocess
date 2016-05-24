@@ -1,6 +1,6 @@
 {
   "_comments": [
-    "When you want to push a new commit back to GH you will need to add 'version' to the commit block.",
+    "When you want to push a new commit back to GH you will need to add 'version/version.go' to the commit block.",
     "If nothing is there then nothing will be pushed back."
   ],
   "coordinates": {
@@ -9,7 +9,7 @@
     "type": "golang"
   },
   "build": [
-    "make pkg=sensupluginsprocess pre-build && make pkg=sensupluginsprocess all"
+    "make pre-build && make all"
   ],
   "bump": [
     "make version_bump"
@@ -21,5 +21,6 @@
     "make clean"
   ],
   "commit": [
+    "version/version.go"
   ]
 }
