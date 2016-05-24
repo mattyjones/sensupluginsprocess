@@ -9,7 +9,7 @@
     "type": "golang"
   },
   "build": [
-    "make pre-build && make all"
+    "make pkg=sensupluginsprocess pre-build && make pkg=sensupluginsprocess all"
   ],
   "bump": [
     "make version_bump"
