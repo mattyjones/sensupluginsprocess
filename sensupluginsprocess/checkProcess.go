@@ -47,16 +47,12 @@ var checkProcessCmd = &cobra.Command{
   used in this case due to redirects using runnit.`,
 	Run: func(sensupluginsprocess *cobra.Command, args []string) {
 
-		// fmt.Println("test" + app + "test")
-
 		switch app {
 		case "":
 			if viper.GetString("sensupluginsprocess.checkProcess.app") != "" {
-				// fmt.Println("test2" + app + "test2")
 				app = viper.GetString("sensupluginsprocess.checkProcess.app")
 				appPid = sensupluginsfile.GetPid(app)
 			} else {
-				// fmt.Println("test3" + app + "test3")
 				syslogLog.WithFields(logrus.Fields{
 					"check":   "checkProcess",
 					"client":  host,
@@ -65,7 +61,6 @@ var checkProcessCmd = &cobra.Command{
 				sensuutil.Exit("CONFIGERROR")
 			}
 		default:
-			// fmt.Println("test4" + app + "test4")
 			appPid = sensupluginsfile.GetPid(app)
 		}
 
