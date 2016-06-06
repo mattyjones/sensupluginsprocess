@@ -1,9 +1,5 @@
 ## sensupluginsprocess
 
-[![Code Climate](https://codeclimate.com/github/yieldbot/sensupluginsprocess/badges/gpa.svg)](https://codeclimate.com/github/yieldbot/sensupluginsprocess)
-[![Test Coverage](https://codeclimate.com/github/yieldbot/sensupluginsprocess/badges/coverage.svg)](https://codeclimate.com/github/yieldbot/sensupluginsprocess/coverage)
-[![Issue Count](https://codeclimate.com/github/yieldbot/sensupluginsprocess/badges/issue_count.svg)](https://codeclimate.com/github/yieldbot/sensupluginsprocess)
-
 ## Commands
  * checkProcess
 
