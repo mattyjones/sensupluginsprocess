@@ -8,6 +8,7 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 ## 0.0.2 - 2016-06-06
 ### Added
 - add logging
+- add docs
 
 ### Changed
 - update for golang 1.6.2
