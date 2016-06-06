@@ -149,9 +149,9 @@ all: clean vendor build dist
 build:
 	@export PATH=$$PATH:$$GOROOT/bin:$$GOBIN; \
 	if [ -e ./$(pkg) ]; then \
-		go build -o ./bin/$(pkg) --ldflags "-linkmode external $(EXTLDFLAGS)" $(srcdir); \
+		godep go build -o ./bin/$(pkg) --ldflags "-linkmode external $(EXTLDFLAGS)" $(srcdir); \
 	else \
-		go build --ldflags "-linkmode external $(EXTLDFLAGS)" $(srcdir); \
+		godep go build --ldflags "-linkmode external $(EXTLDFLAGS)" $(srcdir); \
 	fi; \
 
 # delete all existing binaries and directories used for building

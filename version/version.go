@@ -21,22 +21,29 @@
 package version
 
 import (
-  "fmt"
+	"fmt"
 )
 
+//AppVersionMajor is the major revision number
 const AppVersionMajor = "0"
+
+// AppVersionMinor is the minor revison number
 const AppVersionMinor = "0"
-const AppVersionPatch = "3"
+
+// AppVersionPatch is the patch version
+const AppVersionPatch = "2"
+
+// AppVersionPre ...
 const AppVersionPre = ""
 
-// Set this to an empty string when releasing
+// AppVersionBuild should be empty string when releasing
 const AppVersionBuild = ""
 
-// This function gene
+// AppVersion generates a usable version string
 func AppVersion() string {
-  return fmt.Sprintf("%s.%s.%s%s%s", AppVersionMajor, AppVersionMinor, AppVersionPatch, AppVersionPre, AppVersionBuild)
+	return fmt.Sprintf("%s.%s.%s%s%s", AppVersionMajor, AppVersionMinor, AppVersionPatch, AppVersionPre, AppVersionBuild)
 }
 
 func main() {
-  fmt.Printf("%s", AppVersion())
+	fmt.Printf("%s", AppVersion())
 }
