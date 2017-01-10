@@ -18,7 +18,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/yieldbot/sensuplugin/sensuutil"
+	//"github.com/yieldbot/sensupluginsfile/version"
 )
 
 // JavaApp  This is used to let the process -> pid function know how it will match the process name
@@ -40,9 +42,6 @@ func GetPid(app string) string {
 
 	/// the pid for the binary
 	goPid := os.Getpid()
-	// if Debug {
-	// 	fmt.Printf("golang binary pid: %v\n", goPid)
-	// }
 
 	psAEF := exec.Command("ps", "-aef")
 
@@ -76,7 +75,12 @@ func GetPid(app string) string {
 	}
 	if appPid == "" {
 		if Standalone {
-			sensuutil.ConfigError()
+			syslogLog.WithFields(logrus.Fields{
+				"check":   "checkFileHandles",
+				"client":  host,
+				//"version": version.AppVersion(),
+			}).Error(`The configured process cannot be found. Did you spell it right?`)
+			sensuutil.Exit("CONFIGERROR")
 		} else {
 			return ""
 		}
@@ -129,8 +133,5 @@ func GetFileHandles(pid string) (float64, float64, float64) {
 		fmt.Printf("If unsure of the use, consult the documentation for examples and requirements\n")
 		sensuutil.Exit("PERMISSIONERROR")
 	}
-	// fmt.Printf("s: %v\n",s)
-	// fmt.Printf("h: %v\n",h)
-	// fmt.Printf("numFD: %v\n",numFD)
 	return s, h, numFD
 }
